@@ -4,11 +4,15 @@
 <script>
   d2.init("canvas");
 
-  for(var i = 0; i < 1000000; i++) {
+  for(var i = 0; i < 10000000; i++) {
     d2.fillColor = d2.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
-    d2.triangle(Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150,Math.random() * 150, Math.random() * 150);
+    d2.triangle(Math.random() * 150, Math.random() * 150,Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150);
   }
 
-  d2.update();
+  function update() {
+    d2.update();
+    //requestAnimationFrame(update);
+  }
 
+  update();
 </script>
