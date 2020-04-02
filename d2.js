@@ -97,13 +97,16 @@ const d2 = new class {
       STEP_SIZE: 200, // Step for data size
       update: function(data) {
         d2.gl.bindBuffer(d2.gl.ARRAY_BUFFER, d2.position.buff);
-        d2.gl.bufferData(d2.gl.ARRAY_BUFFER, d2.position.data, d2.gl.STATIC_DRAW);
+        d2.gl.bufferData(d2.gl.ARRAY_BUFFER, d2.position.data, d2.gl.DYNAMIC_DRAW);
         d2.gl.vertexAttribPointer(d2.position.ptr, 2 /* Values count */ , d2.gl.FLOAT /* Type */ ,
           false /* Do not normalize */ , 0, 0);
+      },
+      init: function() {
+        d2.position.data = new Float32Array(d2.position.STEP_SIZE);
+        d2.gl.enableVertexAttribArray(d2.position.ptr);
       }
+
     };
-    d2.position.data = new Float32Array(d2.position.STEP_SIZE);
-    d2.gl.enableVertexAttribArray(d2.position.ptr);
 
     d2.color = {
       ptr: d2.gl.getAttribLocation(d2.program, "a_color"),
@@ -114,10 +117,15 @@ const d2 = new class {
         d2.gl.bufferData(d2.gl.ARRAY_BUFFER, d2.color.data, d2.gl.DYNAMIC_DRAW);
         d2.gl.vertexAttribIPointer(d2.color.ptr, 1 /* Values count */ , d2.gl.UNSIGNED_INT /* Type */ ,
           false /* Do not normalize */ , 0, 0);
+      },
+      init: function() {
+        d2.color.data = new Uint32Array(d2.color.STEP_SIZE);
+        d2.gl.enableVertexAttribArray(d2.color.ptr);
       }
     };
-    d2.color.data = new Uint32Array(d2.color.STEP_SIZE);
-    d2.gl.enableVertexAttribArray(d2.color.ptr);
+
+    d2.position.init();
+    d2.color.init();
 
   }
 
@@ -201,12 +209,10 @@ const d2 = new class {
       d2.color.data.push(d2.fillColor, d2.fillColor, d2.fillColor, d2.fillColor, d2.fillColor, d2.fillColor);
     }
   */
-  
+
   update() {
-    console.time();
     d2.position.update();
     d2.color.update();
-    console.timeEnd();
 
     d2.gl.clearColor(0, 0, 0, 0);
     d2.gl.clear(d2.gl.COLOR_BUFFER_BIT);

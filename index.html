@@ -1,18 +1,28 @@
 <canvas id="canvas"></canvas>
 <script src="d2.js"></script>
-
+<div id="fps" style="position:fixed;bottom:0;left:0;font-weight:bold;"></div>
 <script>
   d2.init("canvas");
 
-  for(var i = 0; i < 10000000; i++) {
+  for (var i = 0; i < 200000; i++) {
     d2.fillColor = d2.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
-    d2.triangle(Math.random() * 150, Math.random() * 150,Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150);
+    d2.triangle(Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150);
+  }
+
+  let t, dt = 70,
+    told = performance.now() - 0.001;
+
+  function fpsUpdate() {
+    t = performance.now();
+    dt = (t - told) * 0.05 + dt * 0.95;
+    document.getElementById("fps").innerHTML = "FPS: " + (Math.round(10000 / dt) / 10);
+    told = t;
   }
 
   function update() {
+    fpsUpdate();
     d2.update();
-    //requestAnimationFrame(update);
+    requestAnimationFrame(update);
   }
-
   update();
 </script>
