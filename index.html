@@ -1,13 +1,26 @@
-<canvas id="canvas"></canvas>
+sic<canvas id="canvas"></canvas>
 <script src="d2.js"></script>
 <div id="fps" style="position:fixed;bottom:0;left:0;font-weight:bold;"></div>
 <script>
   d2.init("canvas");
+  d2.autoFullscreen = true;
 
-  for (var i = 0; i < 200000; i++) {
+let rnd = function() {return Math.random() * 16 - 8}
+
+  for (var i = 0; i < 100000; i++) {
     d2.fillColor = d2.rgb(Math.random() * 255, Math.random() * 255, Math.random() * 255);
-    d2.triangle(Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150, Math.random() * 150);
+    let _x = Math.random() * 800,
+      _y = Math.random() * 800;
+    d2.triangle(_x + rnd(), _y + rnd(), _x - rnd(), _y + rnd(),
+    _x + rnd(), _y + rnd());
   }
+
+  /*
+  d2.fillColor = d2.rgb(70, 200, 56);
+  let _x = Math.random() * 800,
+    _y = Math.random() * 800;
+  let id = d2.triangle(_x + 50, _y - 50, _x + 50, _y + 50, _x - 50, _y + 50);
+*/
 
   let t, dt = 70,
     told = performance.now() - 0.001;
@@ -19,7 +32,10 @@
     told = t;
   }
 
+  d2.fullscreen();
+
   function update() {
+    d2.rotateMultiple(0, 300000, 0.1)
     fpsUpdate();
     d2.update();
     requestAnimationFrame(update);
