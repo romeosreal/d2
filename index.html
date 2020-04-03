@@ -1,6 +1,7 @@
 sic<canvas id="canvas"></canvas>
 <script src="d2.js"></script>
 <div id="fps" style="position:fixed;bottom:0;left:0;font-weight:bold;"></div>
+<script src="wasm/hello.js"></script>
 <script>
   d2.init("canvas");
   d2.autoFullscreen = true;
@@ -15,13 +16,6 @@ let rnd = function() {return Math.random() * 16 - 8}
     _x + rnd(), _y + rnd());
   }
 
-  /*
-  d2.fillColor = d2.rgb(70, 200, 56);
-  let _x = Math.random() * 800,
-    _y = Math.random() * 800;
-  let id = d2.triangle(_x + 50, _y - 50, _x + 50, _y + 50, _x - 50, _y + 50);
-*/
-
   let t, dt = 70,
     told = performance.now() - 0.001;
 
@@ -35,7 +29,7 @@ let rnd = function() {return Math.random() * 16 - 8}
   d2.fullscreen();
 
   function update() {
-    d2.rotateMultiple(0, 300000, 0.1)
+    d2.rotateMultiple(0, 500000, 0.1)
     fpsUpdate();
     d2.update();
     requestAnimationFrame(update);

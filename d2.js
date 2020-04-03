@@ -3,24 +3,34 @@
 const d2 = new class {
   constructor() {
     this.vertexShaderSource = `#version 300 es
-    in uint a_color;
-    in vec2 a_position;
-    out vec4 v_color;
+    in vec2 a_position; /* Vertex positon */
+    in uint a_color; /* Vertex color */
+
+    uniform vec2 u_resolution; /* Used to pass in the resolution of the canvas */
+
+    out vec4 v_color; /* Current vertex color */
 
     float toFloat(uint value) {
       return float(value - ((value >> 8) << 8)) / 255.0;
     }
 
-    void main()
-    {
-      gl_Position = vec4(a_position, 0.0, 1.0);
+    void main() {
+
+      // Convert from 0->u_resolution to -1->+1 (clipspace)
+      vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;
+
+      gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+      // Set color value
       v_color = vec4(toFloat(a_color), toFloat(a_color >> 8), toFloat(a_color >> 16), toFloat(a_color >> 24));
     }`;
 
     this.fragmentShaderSource = `#version 300 es
     precision mediump float;
+
+    in vec4 v_color; /* Point color */
+
     out vec4 outColor;
-    in vec4 v_color;
 
     void main()
     {
@@ -109,7 +119,6 @@ const d2 = new class {
         d2.position.centroid = new Float32Array(Math.floor(1 + d2.position.STEP_SIZE / 3));
         d2.gl.enableVertexAttribArray(d2.position.ptr);
       }
-
     };
 
     d2.color = {
@@ -126,6 +135,12 @@ const d2 = new class {
       init: function() {
         d2.color.data = new Uint32Array(d2.color.STEP_SIZE);
         d2.gl.enableVertexAttribArray(d2.color.ptr);
+      }
+    };
+
+    d2.uniform = {
+      resolution: {
+        ptr: d2.gl.getUniformLocation(d2.program, "u_resolution")
       }
     };
 
@@ -150,12 +165,12 @@ const d2 = new class {
 
     let id2 = d2.id << 1;
     /* Normalize position data */
-    d2.position.data[id2 + 0] = x1 / hw - 1.0;
-    d2.position.data[id2 + 1] = 1.0 - y1 / hh;
-    d2.position.data[id2 + 2] = x2 / hw - 1.0;
-    d2.position.data[id2 + 3] = 1.0 - y2 / hh;
-    d2.position.data[id2 + 4] = x3 / hw - 1.0;
-    d2.position.data[id2 + 5] = 1.0 - y3 / hh;
+    d2.position.data[id2 + 0] = x1;
+    d2.position.data[id2 + 1] = y1;
+    d2.position.data[id2 + 2] = x2;
+    d2.position.data[id2 + 3] = y2;
+    d2.position.data[id2 + 4] = x3;
+    d2.position.data[id2 + 5] = y3;
 
     let id3 = id2 / 3;
     d2.position.centroid[id3 + 0] = (d2.position.data[id2 + 0] + d2.position.data[id2 + 2] +
@@ -184,6 +199,7 @@ const d2 = new class {
         currentArray[i] = d2.position.centroid[i];
       }
       d2.position.centroid = currentArray;
+
     }
 
     /* Color is normalized by default */
@@ -213,7 +229,9 @@ const d2 = new class {
   }
 
   rotateMultiple(offset, len, angle) {
-    let cos = Math.cos(angle), sin = Math.sin(angle), cx, cy, x, y;
+    let cos = Math.cos(angle),
+      sin = Math.sin(angle),
+      cx, cy, x, y;
     for (var i = 0, l = len * 2, offset, index, c = d2.position.centroid, p = d2.position.data; i < l; i += 2) {
       cx = c[i];
       cy = c[i + 1];
@@ -236,11 +254,18 @@ const d2 = new class {
     }
   }
 
-  resizeToScreen(ptr, wk, hk) {
+  resizeToScreen(ptr, wc, hc) {
     for (var i = 0, l = ptr.length; i < l; i += 2) {
-      ptr[i] = ((ptr[i] + 1.0) * wk) - 1.0;
-      ptr[i + 1] = 1.0 - ((-ptr[i + 1] + 1.0) * hk);
+      ptr[i] *= wc;
+      ptr[i + 1] *= hc;
     }
+  }
+
+  updateSize() {
+    let w = d2.canvas.width,
+    h = d2.canvas.height;
+    d2.gl.uniform2f(d2.uniform.resolution.ptr, w, h);
+    d2.gl.viewport(0, 0, w, h);
   }
 
   fullscreen() {
@@ -255,26 +280,27 @@ const d2 = new class {
       let w = window.innerWidth,
         h = window.innerHeight;
 
+      let wc = w / oldw, hc = h / oldh; // Resize coefficents
+
+      //d2.resizeToScreen(d2.position.data, wc, hc);
+      //d2.resizeToScreen(d2.position.centroid, wc, hc);
+
       d2.canvas.width = w;
       d2.canvas.height = h;
-
-      d2.gl.viewport(0, 0, d2.canvas.width, d2.gl.canvas.height);
-
-      d2.resizeToScreen(d2.position.data, oldw / w, oldh / h);
-      d2.resizeToScreen(d2.position.centroid, oldw / w, oldh / h);
     }
   }
 
   update() {
+    d2.gl.useProgram(d2.program);
+
     if (d2.autoFullscreen) d2.fullscreen();
+    d2.updateSize();
 
     d2.position.update();
     d2.color.update();
 
     d2.gl.clearColor(0, 0, 0, 0);
     d2.gl.clear(d2.gl.COLOR_BUFFER_BIT);
-
-    d2.gl.useProgram(d2.program);
 
     d2.gl.drawArrays(d2.gl.TRIANGLES, 0, d2.id);
   }
